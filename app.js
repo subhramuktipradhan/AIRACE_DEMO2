@@ -2,97 +2,89 @@ const http = require("http");
 
 const PORT = 3000;
 
+// Temporary in-memory employee data
+let employees = [
+    {
+        id: 1,
+        name: "Subhra",
+        role: "Data Engineer",
+        department: "Technology"
+    },
+    {
+        id: 2,
+        name: "Rahul",
+        role: "DevOps Engineer",
+        department: "Technology"
+    },
+    {
+        id: 3,
+        name: "Priya",
+        role: "Data Analyst",
+        department: "Analytics"
+    }
+];
+
 const server = http.createServer((req, res) => {
 
-    if (req.url === "/health") {
-        res.writeHead(200, { "Content-Type": "application/json" });
+    // Enable JSON responses
+    res.setHeader("Content-Type", "application/json");
 
+    // GET /health
+    if (req.method === "GET" && req.url === "/health") {
+        res.writeHead(200);
         res.end(JSON.stringify({
             status: "UP",
-            application: "AIRACE Demo 2",
-            timestamp: new Date().toISOString()
+            application: "AIRACE Demo 2"
         }));
-
         return;
     }
 
-    if (req.url === "/api/status") {
-        res.writeHead(200, { "Content-Type": "application/json" });
-
+    // GET /api/status
+    if (req.method === "GET" && req.url === "/api/status") {
+        res.writeHead(200);
         res.end(JSON.stringify({
             application: "AIRACE Demo 2",
             version: "1.0.0",
             environment: "Docker",
             status: "Running"
         }));
-
         return;
     }
 
-    res.writeHead(200, { "Content-Type": "text/html" });
+    // GET /api/employees
+    if (req.method === "GET" && req.url === "/api/employees") {
+        res.writeHead(200);
+        res.end(JSON.stringify(employees));
+        return;
+    }
 
-    res.end(`
-<!DOCTYPE html>
-<html>
-<head>
-    <title>AIRACE Demo 2</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 80px;
-            background: #f4f6f8;
+    // GET /api/employees/:id
+    if (req.method === "GET" && req.url.startsWith("/api/employees/")) {
+
+        const id = parseInt(req.url.split("/")[3]);
+
+        const employee = employees.find(emp => emp.id === id);
+
+        if (!employee) {
+            res.writeHead(404);
+            res.end(JSON.stringify({
+                error: "Employee not found"
+            }));
+            return;
         }
 
-        .container {
-            background: white;
-            padding: 40px;
-            margin: auto;
-            max-width: 600px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
+        res.writeHead(200);
+        res.end(JSON.stringify(employee));
+        return;
+    }
 
-        h1 {
-            margin-bottom: 10px;
-        }
-
-        .status {
-            color: green;
-            font-weight: bold;
-        }
-
-        a {
-            display: inline-block;
-            margin: 10px;
-            padding: 10px 20px;
-            text-decoration: none;
-            background: #333;
-            color: white;
-            border-radius: 5px;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="container">
-        <h1>AIRACE Demo 2</h1>
-
-        <p>Node.js application running successfully.</p>
-
-        <p class="status">● Application Status: UP</p>
-
-        <p>Environment: Docker</p>
-
-        <a href="/health">Health Check</a>
-        <a href="/api/status">API Status</a>
-    </div>
-</body>
-</html>
-`);
-
+    // 404 - Route not found
+    res.writeHead(404);
+    res.end(JSON.stringify({
+        error: "Route not found"
+    }));
 });
 
 server.listen(PORT, () => {
-    console.log(`AIRACE Demo 2 running on port ${PORT}`);
+    console.log(`AIRACE Demo 2 backend running on port ${PORT}`);
 });
